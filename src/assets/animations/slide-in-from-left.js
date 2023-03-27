@@ -9,6 +9,7 @@ export function abSlideInFromLeft(canvas, params) {
 }
 class ABSlideInFromLeft {
   constructor(canvas, params) {
+    this.defaultTextX = 0;
     this.textX = 0;
     this.textY = 0;
     this.canvasWidth = 0;
@@ -16,31 +17,51 @@ class ABSlideInFromLeft {
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this.text = params.text;
+    this.textPosition = params.textPosition;
     this.color = params.color;
     this.fontSize = params.fontSize;
-    this.textX = -this.canvas.clientWidth;
-    this.textY = (this.canvas.height + this.fontSize) / 2;
+    this.loop = params.loop;
+    this.defaultTextX = -this.canvas.clientWidth;
+    this.textX = this.defaultTextX;
+    this.textY = this.getTextY();
     this.canvasWidth = this.canvas.clientWidth;
     this.canvasHeight = this.canvas.clientHeight;
   }
   animate() {
-    this.drawText();
+    this.setup();
     this.runAnimation();
   }
-  drawText() {
+  get endReached() {
+    return this.textX > 10;
+  }
+  setup() {
     this.ctx.font = `${this.fontSize}px Arial`;
     this.ctx.fillStyle = this.color;
-    this.ctx.fillText(this.text, this.textX, this.textY);
   }
   runAnimation() {
-    if (this.textX < 10) {
-      requestAnimationFrame(this.nextFrame.bind(this));
-    }
-  }
-  nextFrame() {
-    this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
     this.textX += 2;
-    this.drawText();
-    this.runAnimation();
+    this.drawFrame();
+    if (this.endReached && !this.loop) {
+      console.log('Animation finished!');
+      return;
+    }
+    if (this.endReached && this.loop) {
+      this.textX = this.defaultTextX;
+    }
+    requestAnimationFrame(this.runAnimation.bind(this));
+  }
+  drawFrame() {
+    this.ctx.clearRect(0, 0, this.canvasWidth + 10, this.canvasHeight + 10);
+    this.ctx.fillText(this.text, this.textX, this.textY);
+  }
+  getTextY() {
+    switch (this.textPosition) {
+      case 'top':
+        return this.fontSize * 2;
+      case 'bottom':
+        return this.canvas.height - this.fontSize;
+      default:
+        return (this.canvas.height + this.fontSize) / 2;
+    }
   }
 }
